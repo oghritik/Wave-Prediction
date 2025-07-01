@@ -1,0 +1,124 @@
+Conversation with CopernicusMarineService
+Started on June 24, 2025 at 09:35 AM Paris time CEST (GMT+0200)
+
+---
+
+09:35 AM | Hritik Routia: I'm having problems downloading data. Can you help me? 
+ For this data request: 
+ {
+ "product_id": "GLOBAL_ANALYSISFORECAST_WAV_001_027",
+ "dataset_id": "cmems_mod_glo_wav_anfc_0.083deg_PT3H-i_202411",
+ "variables": [
+ "VMDR"
+ ],
+ "start_datetime": "2025-06-24T12:00:00.000Z",
+ "end_datetime": "2025-06-25T12:00:00.000Z",
+ "minimum_longitude": -10.102329,
+ "maximum_longitude": -10.102329,
+ "minimum_latitude": 39.979985,
+ "maximum_latitude": 39.979985
+}
+
+09:35 AM | Blu: Many thanks for these details 🙏 
+ Could you please wait for a few minutes and click anew on the "Download" button and let us know how it goes?
+
+10:57 AM | Leïla from CopernicusMarineService: Hello Hritik 👋 
+ I'm Leïla from Copernicus Marine and it's a pleasure to meet you! 
+ 
+ Could you let me know if you still have issues with the Subset GUI at the moment?
+
+04:25 PM | Hritik Routia: are u an actual human or just a bot
+
+04:28 PM | Leïla from CopernicusMarineService: Human! 😊
+
+04:28 PM | Hritik Routia: no way
+
+04:29 PM | Leïla from CopernicusMarineService: I swear 😊 
+ Do you need help with something?
+
+04:31 PM | Hritik Routia: okay 
+from the gui the data is not downloading but i use py api and that work
+
+04:33 PM | Leïla from CopernicusMarineService: Alright , I'm glad you were able able to find an alternative way to download our data 👍 
+ When there is an issue with the Subsetter GUI, it doesn't last long. It should work now 😊
+
+04:34 PM | Hritik Routia: nope still pushes an error
+
+04:35 PM | Leïla from CopernicusMarineService: Oh okay 😯 On our side, everything is working fine... Could you take a screenshot of the error you're getting please? (or let me know what it says)
+
+04:36 PM | Hritik Routia: [Image "Screenshot+2025-06-24+at+8_06_35%E2%80%AFPM.png?expires=1750779900&signature=77f9c6bee3cd0b651bfa83c1161d3263e07348e92164bd6a951e8a05e3c08237&req=dSUvE8B2n4RdXfMW1HO4zaiaeNo6B%2BhokYg1w%2F9ngxFu6zO80L7WFQ1LPMLh%0Ao864MPslTw7Qt87NQhM%3D%0A"]
+
+04:38 PM | Hritik Routia: btw how can i get a data of a region like a block or somthing
+
+04:42 PM | Leïla from CopernicusMarineService: Oh so you are downloading data from the MyOcean Viewer. 
+ Could you let me know what are the parameters of your request please? You just have to click on "Automate", copy the request, and send it to me 
+ [Image "image.png?expires=1750779900&signature=cbdd90a732852f394c9395030338a10d98ec8fc2cb994d0758c8d7406583515d&req=dSUvE8B2lYRfXvMW1HO4zVbxct4Fl3w2BDPujegnZApG7JVUiHlaSGtPe8tV%0AsMqn4m05wloUnIrZUII%3D%0A"]
+
+04:42 PM | Leïla from CopernicusMarineService: To download the data of a region by using "a block", you just have to click on "Define on map" and then draw a shape. The coordinates of the shape will be automatically indicated as the geographical coordinates of your request: 
+ [Image "image.png?expires=1750779900&signature=394ca53087698c0a669cbba01adfdd4859f549a3e9d645e7f2db8b61c670bd77&req=dSUvE8B3noRbWvMW1HO4zcT%2Fsq9W8L6zMt%2F5HpR7h4mh7NuP%2F2G6cZa3hbme%0ArISsE8jMTTqP8GRBmZ8%3D%0A"]
+
+04:44 PM | Hritik Routia: ya i figured block one out
+
+04:44 PM | Hritik Routia: import copernicusmarine 
+ copernicusmarine.subset(
+ dataset_id="cmems_mod_glo_wav_anfc_0.083deg_PT3H-i",
+ dataset_version="202411",
+ variables=["VMDR"],
+ minimum_longitude=-11.084738,
+ maximum_longitude=-9.269973,
+ minimum_latitude=37.971742,
+ maximum_latitude=40.205483,
+ start_datetime="2025-04-25T00:00:00",
+ end_datetime="2025-06-25T12:00:00",
+ coordinates_selection_method="strict-inside",
+ netcdf_compression_level=1,
+ disable_progress_bar=True,
+)
+
+04:49 PM | Leïla from CopernicusMarineService: The request you sent me works fine on our side... Do you have a good connexion? (you can test it here: https://fast.com/fr/)
+
+04:49 PM | Leïla from CopernicusMarineService: To get data for a region, you could also use the preset geometries: "Import" (on the right) > "Presets" > Select the region of your choice.
+
+04:50 PM | Hritik Routia: okay
+
+04:51 PM | Hritik Routia: it works on one way and i am ok with it
+
+04:51 PM | Hritik Routia: thanks for help bot
+
+04:55 PM | Leïla from CopernicusMarineService: No problem! 
+ 
+ I'm not a bot.... 
+ [GIF]
+
+04:55 PM | Leïla from CopernicusMarineService: If you need anything else, I remain at your disposal and you can always rely on helpful resources (articles, videos, tutorials..) from our Help Center (https://help.marine.copernicus.eu/en/)! 
+ You can also be notified of incidents or maintenance on your favorite product(s) by subscribing to the User Notification Service (UNS (https://help.marine.copernicus.eu/en/articles/4423192-how-to-be-informed-of-operational-events-on-products-and-services)). 
+ 
+ Have a good day Hritik! 🌊
+
+04:55 PM | Blu: Rate your conversation
+
+04:57 PM | Hritik Routia: i cant believe there are people on the backend for this
+
+04:58 PM | Hritik Routia: like u are online for this for like 6 7 hours
+
+05:00 PM | Leïla from CopernicusMarineService: Yes from 7 AM to 3 PM UTC, from Monday to Friday 💪
+
+05:01 PM | Hritik Routia: nice r u a student or this is an actual job
+
+05:03 PM | Leïla from CopernicusMarineService: Actual job, I'm part of the User Support Team of Copernicus Marine Service 🌊
+
+05:03 PM | Hritik Routia: okay 😀
+
+05:04 PM | Leïla from CopernicusMarineService: Have a good day! 🌻
+
+05:05 PM | Hritik Routia: its actually night here 
+but thanks
+
+05:07 PM | Leïla from CopernicusMarineService: Oh okay, good night then 😴
+
+05:08 PM | Hritik Routia: no i have to work on wave data 😭
+
+05:10 PM | Leïla from CopernicusMarineService: [GIF]
+
+---
+Exported from CopernicusMarineService on June 24, 2025 at 05:11 PM Paris time CEST (GMT+0200)
