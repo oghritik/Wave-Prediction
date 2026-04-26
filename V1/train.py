@@ -135,11 +135,11 @@ def main():
     trainer = Trainer(
         max_epochs=EPOCHS,
         accelerator='gpu',
-        devices=[0, 1],
-        # On Windows, you must specify the 'gloo' backend for DDP
-        strategy=DDPStrategy(process_group_backend='gloo'),
+        devices=[0, 1],  # Use both GPUs
+        strategy=DDPStrategy(process_group_backend='nccl'),  # NCCL is optimal for NVIDIA GPUs
         callbacks=[early_stop_callback, checkpoint_callback],
-        log_every_n_steps=10
+        log_every_n_steps=10,
+        sync_batchnorm=True  # Synchronize batch norm across GPUs
     )
 
     print(f"\n--- Starting DDP training on GPUs 0 and 1 ---")
