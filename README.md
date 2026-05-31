@@ -1,86 +1,49 @@
 # 🌊 Extended-Horizon Ocean Wave Forecasting via Hybrid CNN-BiGRU
 
-> **Under Review at NeurIPS 2026**  
+> **NeurIPS 2026 Submission**  
 > *Extended-Horizon Ocean Wave Forecasting via Hybrid CNN-BiGRU with Sliding Window and Correction Mechanism*
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python)](https://www.python.org/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-Lightning-orange?logo=pytorch)](https://lightning.ai/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Paper](https://img.shields.io/badge/Paper-NeurIPS%202026-purple)](https://github.com/oghritik/Wave-Prediction)
+[![PyTorch Lightning](https://img.shields.io/badge/PyTorch-Lightning-orange?logo=pytorch)](https://lightning.ai/)
+[![Data: CMEMS](https://img.shields.io/badge/Data-CMEMS%20IBI-0077B6)](https://marine.copernicus.eu/)
+[![Bathymetry: GEBCO](https://img.shields.io/badge/Bathymetry-GEBCO%202022-1A6E38)](https://www.gebco.net/)
 
 ---
 
 ## 📌 Overview
 
-This repository contains the official implementation of our NeurIPS 2026 paper benchmarking spatiotemporal deep learning architectures for **extreme ocean wave forecasting** at **Nazaré Canyon, Portugal** — Europe's largest submarine canyon and the world's most bathymetrically complex wave amplification site.
+This repository is the official code for our systematic benchmark of spatiotemporal deep learning architectures for **extreme ocean wave forecasting at Nazaré Canyon, Portugal** — Europe's largest submarine canyon and one of the world's most extreme wave environments.
 
-Our central finding: **bidirectional temporal modelling dominates spatial encoder complexity** when bathymetry is explicitly encoded. CNN+BiGRU — the simplest spatial encoder tested — outperforms ASPP multi-scale and UNet++ dense skip-connection encoders by up to **23% RMSE** on 168-hour forecasts.
+The core question we answer: **does increasing spatial encoder complexity improve extreme wave prediction, or does bidirectional temporal modelling dominate?**
 
-We also introduce a **predict-three-retain-one recursive evaluation protocol** with internal drift correction, enabling stable 168-hour spatiotemporal wave forecasting without runaway error accumulation.
+Our finding: **CNN+BiGRU — the simplest spatial encoder — outperforms ASPP and UNet++ variants by up to 23% RMSE**, demonstrating that bidirectional temporal modelling is the decisive factor when bathymetry is explicitly encoded as a static input channel.
+
+> 📁 **The final implementation with all paper results lives in `V4/`.**  
+> `V1/`, `V2/`, `V3/` are earlier development iterations kept for reference.
 
 ---
 
 ## 🏔️ Why Nazaré Canyon?
 
-Nazaré Canyon (39.6°N, 9.1°W) is 230 km long, reaches 5,000 m depth, and terminates metres from the Portuguese coast. Incoming North Atlantic swell splits across the deep canyon channel and shallow shelf, reconverging near shore through constructive interference that routinely produces:
+Nazaré Canyon (39.6°N, 9.1°W) stretches 230 km, reaches 5,000 m depth, and terminates metres from the Portuguese coastline. Incoming North Atlantic swell splits across the deep canyon channel and the shallower shelf, reconverging near shore through constructive interference. The result:
 
-- **Winter maxima > 15 m** crest-trough wave heights (VCMX)
+- **Routine winter maxima > 15 m** crest-trough wave heights (VCMX)
 - **Documented extremes > 30 m**
-- Events like the **WSL Tudor Big Wave Challenge**
+- Home of the **WSL Tudor Big Wave Challenge**, attracting tens of thousands of spectators annually
 
-Standard numerical models (WAVEWATCH III, SWAN) and open-ocean deep learning approaches systematically underestimate wave heights here due to ignoring or flattening bathymetric structure. This work addresses that gap.
+Standard numerical models (WAVEWATCH III, SWAN) and open-ocean deep learning approaches systematically underestimate wave heights here by ignoring or flattening bathymetric structure. This work directly addresses that failure.
 
 ---
 
 ## ✨ Key Contributions
 
-1. **First systematic benchmark** of spatiotemporal deep learning architectures on a bathymetry-critical extreme wave environment — four architectures trained identically on 35,017 hourly CMEMS IBI steps with explicit GEBCO 2022 bathymetry.
+1. **First systematic benchmark** of spatiotemporal architectures on a bathymetry-critical extreme wave environment — four models trained identically on 35,017 hourly CMEMS IBI steps with explicit GEBCO 2022 bathymetry.
 
-2. **Predict-three-retain-one recursive protocol** with internal drift correction — enabling stable 168-hour forecasting evaluated on a 696-step November 2023 window capturing a **17.18 m extreme event**.
+2. **Predict-three-retain-one recursive protocol** with internal drift correction — enables stable 168-hour forecasting, evaluated on a 696-step November 2023 window capturing a **17.18 m extreme event**.
 
-3. **Architectural finding**: CNN+BiGRU (simplest encoder) outperforms ASPP and UNet++ variants by up to 23% RMSE, demonstrating that bidirectional temporal modelling is the decisive factor when bathymetry is explicitly encoded as a static input channel.
+3. **Architectural insight**: CNN+BiGRU (simplest spatial encoder) outperforms ASPP and UNet++ variants by up to 23% RMSE. Bidirectional temporal modelling dominates when bathymetry is explicitly encoded.
 
-4. **Negative design guidance**: ASPP dilation rates are counterproductive on restricted coastal ocean grids (72×90 at 0.027°), as receptive fields exceed the domain's effective spatial extent.
-
----
-
-## 🏗️ Architectures Benchmarked
-
-All four models share an identical design contract: **spatial encoder → BiGRU temporal backbone → 1×1 Conv output head**. They differ only in the spatial encoder.
-
-| Version | Model | Spatial Encoder | Temporal Backbone |
-|---------|-------|-----------------|-------------------|
-| V1 | **ConvLSTM** | Convolutional LSTM cells (fused space-time) | — (integrated) |
-| V2 | **CNN + BiGRU** ⭐ | Stride-2 CNN (2 layers: 64, 32 filters) | Bidirectional ConvGRU |
-| V3 | **DeepLabV3 + BiGRU** | ASPP multi-scale pooling (d=1,6,12) | Bidirectional ConvGRU |
-| V4 | **UNet++ + BiGRU** | DW-separable U-Net++ dense skip connections | Bidirectional ConvGRU |
-
-> ⭐ Best performing architecture
-
-**Input tensor:** `(B, 48, 10, 72, 90)` — batch × 48-hour lookback × 10 channels (8 dynamic + 2 static) × 72×90 spatial grid  
-**Output:** 8-variable wave field for next 3 hours (sequence-to-one)
-
----
-
-## 📊 Results
-
-### Benchmark — November 2023 Extreme Event Window (696 steps, VCMX range 5–17 m)
-
-| Model | Overall RMSE (m) | Overall MAE (m) | VCMX RMSE (m) | VCMX MAE (m) |
-|---|---|---|---|---|
-| ConvLSTM | 0.3579 | 0.1613 | 0.2839 | 0.2213 |
-| **CNN+BiGRU** | **0.2965** | **0.1264** | **0.1832** | **0.1384** |
-| DeepLabV3+BiGRU | 0.3174 | 0.1551 | 0.2797 | 0.2035 |
-| UNet+++BiGRU | 0.3833 | 0.1999 | 0.3577 | 0.2763 |
-
-### Baseline Comparison
-
-| Model | Lookback | Horizon | VCMX RMSE (m) | VCMX MAE (m) |
-|---|---|---|---|---|
-| EarthFormer | 12 h | 14 h | 6.7475 | 6.4283 |
-| Vanilla ConvLSTM (single-pass) | 48 h | 168 h | 1.1960 | 0.8211 |
-| CNN+BiGRU (12h lookback) | 12 h | 168 h | 0.1832 | 0.1384 |
-| **CNN+BiGRU (48h lookback)** | **48 h** | **168 h** | **0.2965** | **0.1264** |
+4. **Negative design guidance**: Large ASPP dilation rates are counterproductive on restricted coastal grids (72×90 at 0.027°) — receptive fields designed for high-resolution semantic segmentation exceed the domain's effective spatial extent.
 
 ---
 
@@ -89,45 +52,148 @@ All four models share an identical design contract: **spatial encoder → BiGRU 
 ```
 Wave-Prediction/
 │
-├── V1/                          # ConvLSTM architecture
-├── V2/                          # CNN + BiGRU (best model)
-├── V3/                          # DeepLabV3 + BiGRU
-├── V4/                          # UNet++ + BiGRU
+├── V4/                                     # ✅ FINAL — all paper results here
+│   │
+│   ├── v6.ipynb                            # Architecture run: v6 (lookback 24h)
+│   ├── v6_VCMX_only_accuracy.png           #   └─ VCMX accuracy plot
+│   ├── v6_VCMX_only_error_evolution.png    #   └─ Error evolution over time
+│   ├── v6_VCMX_only_predictions.png        #   └─ Predicted vs actual VCMX
+│   ├── v6_sliding_window_30h_accuracy.png  #   └─ 30h sliding window accuracy
+│   ├── v6_sliding_window_30h_errors.png    #   └─ 30h sliding window errors
+│   ├── v6_sliding_window_30h_predictions.png  #   └─ 30h sliding window predictions
+│   ├── v6_spatial_maps_hours_10_20_30.png  #   └─ Spatial wave field at t+10,20,30h
+│   ├── v6_training_history_lookback_24.png #   └─ Training loss curve (24h lookback)
+│   │
+│   ├── v7.ipynb                            # Architecture run: v7 (lookback 12h)
+│   ├── v7_VCMX_only_accuracy.png
+│   ├── v7_VCMX_only_error_evolution.png
+│   ├── v7_VCMX_only_predictions.png
+│   ├── v7_sliding_window_30h_accuracy.png
+│   ├── v7_sliding_window_30h_errors.png
+│   ├── v7_sliding_window_30h_predictions.png
+│   ├── v7_spatial_maps_hours_10_20_30.png
+│   ├── v7_training_history_lookback_12.png #   └─ Training loss curve (12h lookback)
+│   │
+│   ├── v8.ipynb                            # Architecture run: v8 (lookback 72h) — final
+│   ├── v8_VCMX_only_accuracy.png
+│   ├── v8_VCMX_only_error_evolution.png
+│   ├── v8_VCMX_only_predictions.png
+│   ├── v8_sliding_window_30h_accuracy.png
+│   ├── v8_sliding_window_30h_errors.png
+│   ├── v8_sliding_window_30h_predictions.png
+│   ├── v8_spatial_maps_hours_10_20_30.png
+│   └── v8_training_history_lookback_72.png #   └─ Training loss curve (72h lookback)
+│
+├── V1/                          # 🔧 Early prototype
+├── V2/                          # 🔧 Intermediate experiments
+├── V3/                          # 🔧 Intermediate experiments
 │
 ├── models/                      # Saved model checkpoints
-├── Documents/                   # Paper drafts and supplementary
+├── Documents/                   # Paper drafts and supplementary material
 ├── paper_figures/               # Figures used in the paper
-├── result images/               # Prediction output visualisations
+├── result images/               # Additional prediction visualisations
 ├── lightning_logs/              # PyTorch Lightning training logs
 │
 ├── EDA.ipynb                    # Exploratory data analysis
 ├── feature_engineering.ipynb    # Feature selection & correlation analysis
-├── model_comparision.ipynb      # Initial model comparison notebook
-├── model_comparison_refactored.ipynb  # Cleaned benchmark notebook
+├── model_comparision.ipynb      # Early model comparison notebook
+├── model_comparison_refactored.ipynb  # Refactored final benchmark
 ├── ocean_visuals.ipynb          # Bathymetry & wave field visualisations
 ├── download.py                  # CMEMS data download script
-├── research_experiment.py       # Main training/evaluation script
-├── req.txt                      # Python dependencies
-└── README.md
+├── research_experiment.py       # Main training script
+└── req.txt                      # Python dependencies
 ```
+
+### V4 Notebook Runs Explained
+
+Each notebook (`v6`, `v7`, `v8`) inside `V4/` represents a complete training and evaluation run with a different **lookback window**, letting us ablate the effect of historical context length:
+
+| Notebook | Lookback | Key output |
+|---|---|---|
+| `v6.ipynb` | 24 h | Baseline lookback comparison |
+| `v7.ipynb` | 12 h | Short-context ablation |
+| `v8.ipynb` | 72 h | Extended-context ablation |
+
+Each run produces the same standardised set of 8 output figures:
+
+| Figure suffix | What it shows |
+|---|---|
+| `_VCMX_only_accuracy.png` | Accuracy metrics for the target variable (VCMX) |
+| `_VCMX_only_error_evolution.png` | How prediction error evolves across the forecast horizon |
+| `_VCMX_only_predictions.png` | Predicted vs actual VCMX time series |
+| `_sliding_window_30h_accuracy.png` | Accuracy under 30-hour recursive sliding window |
+| `_sliding_window_30h_errors.png` | Error breakdown for the sliding window run |
+| `_sliding_window_30h_predictions.png` | Sliding window predicted vs actual |
+| `_spatial_maps_hours_10_20_30.png` | Spatial wave field snapshots at t+10h, t+20h, t+30h |
+| `_training_history_lookback_XX.png` | Training & validation loss curves |
+
+---
+
+## 🏗️ Architecture Overview
+
+All four models share the same design contract:
+
+```
+[10-channel spatial input at each timestep]
+        ↓
+[Spatial Encoder]  ← the controlled variable across architectures
+        ↓
+[Bidirectional ConvGRU temporal backbone]
+        ↓
+[1×1 Conv output head → 8-variable wave field]
+```
+
+**Input tensor:** `(B, 48, 10, 72, 90)` — batch × 48h lookback × 10 channels × 72×90 grid  
+**Output:** Full 8-variable wave field for next 3 hours (sequence-to-one)
+
+| Model | Spatial Encoder | Overall RMSE |
+|---|---|---|
+| ConvLSTM | Fused ConvLSTM cells | 0.3579 m |
+| **CNN+BiGRU** ⭐ | Stride-2 CNN (64→32 filters) | **0.2965 m** |
+| DeepLabV3+BiGRU | ASPP multi-scale pooling (d=1,6,12) | 0.3174 m |
+| UNet+++BiGRU | DW-separable U-Net++ with dense skip connections | 0.3833 m |
+
+> ⭐ Best performer. More parameters ≠ better results at this domain scale.
+
+---
+
+## 📊 Results
+
+### Main Benchmark — November 2023 Extreme Event Window
+*(696 steps, VCMX range 5–17 m, 168-hour sliding window with drift correction)*
+
+| Model | Overall RMSE | Overall MAE | VCMX RMSE | VCMX MAE |
+|---|---|---|---|---|
+| ConvLSTM | 0.3579 m | 0.1613 m | 0.2839 m | 0.2213 m |
+| **CNN+BiGRU** | **0.2965 m** | **0.1264 m** | **0.1832 m** | **0.1384 m** |
+| DeepLabV3+BiGRU | 0.3174 m | 0.1551 m | 0.2797 m | 0.2035 m |
+| UNet+++BiGRU | 0.3833 m | 0.1999 m | 0.3577 m | 0.2763 m |
+
+### Against Baselines
+
+| Model | Lookback | Horizon | VCMX RMSE | VCMX MAE |
+|---|---|---|---|---|
+| EarthFormer (single-pass) | 12 h | 14 h | 6.7475 m | 6.4283 m |
+| Vanilla ConvLSTM (no sliding window) | 48 h | 168 h | 1.1960 m | 0.8211 m |
+| **CNN+BiGRU (ours)** | **48 h** | **168 h** | **0.2965 m** | **0.1264 m** |
 
 ---
 
 ## 🗃️ Dataset
 
 ### Dynamic Wave Data — CMEMS IBI Reanalysis
-- **Source:** [Copernicus Marine Service (CMEMS) IBI Wave Analysis & Forecast](https://marine.copernicus.eu/)
+- **Source:** [Copernicus Marine Service — IBI Ocean Wave Reanalysis](https://marine.copernicus.eu/)
 - **Period:** January 2020 – December 2023 (35,017 hourly steps)
-- **Domain:** 38.5°N–40.5°N, 11.0°W–8.5°W at 0.027° resolution → **72×90 grid**
+- **Domain:** 38.5°N–40.5°N, 11.0°W–8.5°W at 0.027° → **72×90 grid**
 - **Format:** CF-1.8 compliant NetCDF-4
 
 ### Static Bathymetry — GEBCO 2022
 - **Source:** [GEBCO 2025 Grid](https://www.gebco.net/)
-- **Processing:** Bilinearly interpolated from native 90×90 grid onto the CMEMS grid to preserve canyon geometry (true depth: ~5,000 m vs CMEMS native: ~1,000 m)
+- **Why:** Native CMEMS reports only ~1,000 m at Nazaré; true depth >5,000 m. GEBCO is bilinearly interpolated onto the CMEMS grid to preserve the canyon geometry critical for extreme-wave formation.
 
-### Selected Input Features
+### Selected Features
 
-| Variable | Units | Correlation w/ VCMX | Description |
+| Variable | Units | Corr. w/ VCMX | Description |
 |---|---|---|---|
 | VHM0_SW1 | m | 0.89 | Primary swell significant wave height |
 | VTM02 | s | 0.63 | Mean wave period (second moment) |
@@ -136,11 +202,11 @@ Wave-Prediction/
 | VSDmag | m/s | 0.52 | Stokes drift magnitude |
 | VHM0_WW | m | 0.46 | Wind-wave significant wave height |
 | VTM01_WW | s | 0.40 | Wind-wave mean period |
-| **VCMX** | **m** | **—** | **Target: Maximum crest-trough wave height** |
-| GEBCO depth | m | — | Static bathymetric depth (GEBCO 2022) |
+| **VCMX** | **m** | — | **Target: Max crest-trough wave height** |
+| GEBCO depth | m | — | Static bathymetric depth |
 | Ocean mask | — | — | Binary ocean/land mask |
 
-### Temporal Split (no shuffling — strict chronological)
+### Data Split *(strict chronological, no shuffling)*
 
 | Split | Period | Steps |
 |---|---|---|
@@ -148,37 +214,42 @@ Wave-Prediction/
 | Validation | Jan 2023 – Jun 2023 | 4,344 |
 | Test | Jul 2023 – Dec 2023 | 4,392 |
 
+Benchmark evaluation uses the **November 2023 sub-window** (696 steps) — peak storm month capturing the 17.18 m extreme event of November 4–5.
+
 ---
 
-## ⚙️ Sliding Window Forecasting & Drift Correction
+## 🔄 Sliding Window Forecasting & Drift Correction
 
-### Predict-Three-Retain-One Protocol
+Although models are trained to predict **3 hours ahead** from a **48-hour lookback**, we extend to stable **168-hour forecasts** via a recursive protocol:
 
-Although trained to predict 3 hours ahead from a 48-hour lookback, **168-hour forecasts** are generated recursively:
-
-1. At time `t`, the model receives `X_t = {x_{t-47}, ..., x_t}` and outputs `Ŷ_t = {ŷ_{t+1}, ŷ_{t+2}, ŷ_{t+3}}`
-2. Only `ŷ_{t+1}` is **retained** as the official forecast and appended to the next input window
-3. `ŷ_{t+2}` and `ŷ_{t+3}` form an **internal correction window** to monitor drift
-
-### Dynamic Error Correction
-
-Consecutive forecast deviations are monitored:
+### Predict-Three-Retain-One
 
 ```
-Δ₁ = mean(|ŷ_{t+2} − ŷ_{t+1}|)
-Δ₂ = mean(|ŷ_{t+3} − ŷ_{t+2}|)
-D  = |Δ₂ − Δ₁|
-C  = 1.0 − (D × 0.5)
-Ŷ_corrected = Ŷ × C
+At time t:
+  Input:  X_t = {x_{t-47}, ..., x_t}
+  Output: Ŷ_t = {ŷ_{t+1}, ŷ_{t+2}, ŷ_{t+3}}
+
+  RETAIN ŷ_{t+1}  →  appended to next window as ground truth substitute
+  USE ŷ_{t+2}, ŷ_{t+3}  →  internal drift monitoring only, then discard
 ```
 
-This attenuates unstable forecasts proportional to internal drift magnitude, suppressing unrealistic spikes over the 168-hour window.
+### Internal Drift Correction
+
+```python
+Δ₁ = mean(|ŷ_{t+2} - ŷ_{t+1}|)   # step-1 forecast change
+Δ₂ = mean(|ŷ_{t+3} - ŷ_{t+2}|)   # step-2 forecast change
+D  = |Δ₂ - Δ₁|                    # internal drift magnitude
+C  = 1.0 - (D × 0.5)              # correction factor ∈ (0, 1]
+Ŷ_corrected = Ŷ × C               # attenuate unstable predictions
+```
+
+This suppresses unrealistic spikes and prevents autoregressive error accumulation — especially critical during the rapid 13.59 m → 16.14 m ramp-up of the November 4–5 storm event.
 
 ---
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### 1. Clone & Install
 
 ```bash
 git clone https://github.com/oghritik/Wave-Prediction.git
@@ -186,64 +257,67 @@ cd Wave-Prediction
 pip install -r req.txt
 ```
 
-Additional requirements for model training (not in `req.txt`):
-
+Additional dependencies for training:
 ```bash
-pip install torch pytorch-lightning netCDF4 xarray copernicusmarine
+pip install torch pytorch-lightning copernicusmarine
 ```
 
-### Data Download
+### 2. Download Data
 
 ```bash
 python download.py
 ```
 
-> You will need a free [Copernicus Marine Service](https://marine.copernicus.eu/) account. Set your credentials as environment variables `CMEMS_USER` and `CMEMS_PASSWORD` before running.
-
-### Exploratory Analysis
-
+Requires a free [Copernicus Marine Service](https://marine.copernicus.eu/) account:
 ```bash
-jupyter notebook EDA.ipynb
-jupyter notebook feature_engineering.ipynb
-jupyter notebook ocean_visuals.ipynb
+export COPERNICUSMARINE_SERVICE_USERNAME="your_username"
+export COPERNICUSMARINE_SERVICE_PASSWORD="your_password"
 ```
 
-### Training
-
-Navigate to the model version you want to train:
+### 3. Explore the Data
 
 ```bash
-# Example: train CNN+BiGRU (V2 — best model)
-cd V2
-python train.py
+jupyter notebook EDA.ipynb                    # variable distributions, correlations
+jupyter notebook feature_engineering.ipynb    # feature selection
+jupyter notebook ocean_visuals.ipynb          # bathymetry & spatial wave fields
 ```
 
-Training uses **PyTorch Lightning with DDP** across 2× NVIDIA GTX 1080 Ti GPUs and 16-bit AMP. See `Table 2` in the paper for full hyperparameter configuration.
+### 4. Run the Final Experiments (V4)
 
-### Evaluation / Benchmark
+Open the notebooks inside `V4/` in order of lookback ablation:
 
 ```bash
-jupyter notebook model_comparison_refactored.ipynb
+cd V4
+
+# Short lookback (12h)
+jupyter notebook v7.ipynb
+
+# Medium lookback (24h)
+jupyter notebook v6.ipynb
+
+# Extended lookback (72h) — closest to paper results
+jupyter notebook v8.ipynb
 ```
 
-This notebook runs the 168-hour sliding window evaluation with drift correction over the November 2023 extreme event window (696 steps).
+Each notebook runs the full pipeline: data loading → model training → 168-hour sliding window evaluation with drift correction → all 8 result figures.
 
 ---
 
-## 🧪 Training Configuration
+## ⚙️ Training Configuration
 
 | Hyperparameter | Value |
 |---|---|
-| Optimiser | Adam |
-| Learning rate | 1×10⁻⁴ |
+| Optimizer | Adam |
+| Learning rate | 1 × 10⁻⁴ |
 | Loss function | MSE |
 | Early stopping patience | 5 epochs |
 | Max epochs | 50 |
-| Lookback window | 48 hours |
-| Training horizon | 3 hours (direct) |
+| Lookback window | 48 hours (paper) / 12, 24, 72h (ablations in V4) |
+| Training horizon | 3 hours (sequence-to-one) |
 | Evaluation horizon | 168 hours (recursive sliding window) |
 | Batch size | 4 |
 | Precision | 16-bit AMP |
+| Framework | PyTorch Lightning + DDP |
 | Hardware | 2× NVIDIA GTX 1080 Ti |
 
 ---
@@ -261,22 +335,24 @@ matplotlib
 seaborn
 torch
 pytorch-lightning
+copernicusmarine
 ```
 
 ---
 
 ## 📜 Citation
 
-If you use this code or dataset in your research, please cite:
+If you use this code or findings in your work, please cite:
 
 ```bibtex
 @inproceedings{routia2026waveprediction,
-  title     = {Extended-Horizon Ocean Wave Forecasting via Hybrid CNN-BiGRU 
+  title     = {Extended-Horizon Ocean Wave Forecasting via Hybrid CNN-BiGRU
                with Sliding Window and Correction Mechanism},
   author    = {Routia, Hritik and Patel, Parth and Kumar, Santosh},
   booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
   year      = {2026},
-  institution = {IIIT Naya Raipur}
+  note      = {IIIT Naya Raipur},
+  url       = {https://github.com/oghritik/Wave-Prediction}
 }
 ```
 
@@ -284,7 +360,7 @@ If you use this code or dataset in your research, please cite:
 
 ## 👥 Authors
 
-| Name | Institution | Contact |
+| Name | Affiliation | Email |
 |---|---|---|
 | **Hritik Routia** | IIIT Naya Raipur | hritik23100@iiitnr.edu.in |
 | **Parth Patel** | IIIT Naya Raipur | parth23100@iiitnr.edu.in |
@@ -294,12 +370,12 @@ If you use this code or dataset in your research, please cite:
 
 ## 🙏 Acknowledgements
 
-- **CMEMS** — Copernicus Marine Environment Monitoring Service for the IBI Ocean Wave Reanalysis product
-- **GEBCO** — General Bathymetric Chart of the Oceans for the 2022 high-resolution bathymetric grid
+- **Copernicus Marine Service (CMEMS)** — IBI Ocean Wave Analysis and Forecast product
+- **GEBCO** — General Bathymetric Chart of the Oceans 2022 grid
 - **IIIT Naya Raipur** — Institutional support and compute resources
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+MIT License — see [LICENSE](LICENSE) for details.
