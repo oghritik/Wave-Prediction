@@ -7,3 +7,6 @@ models/
 V2/.conda/
 dAtA_for_V2/
 .vs/
+# Large generated output artifacts
+output data/168h/all_model_predictions.pkl
+output data/120h/all_model_predictions.pkl
