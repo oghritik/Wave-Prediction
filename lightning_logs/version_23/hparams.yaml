@@ -1,0 +1,13 @@
+c_in: 10
+c_out: 1
+cuboid_size: !!python/tuple
+- 4
+- 8
+- 9
+depth: 2
+dim: 64
+dropout: 0.1
+lr: 0.0001
+num_heads: 4
+t_in: 12
+t_out: 14

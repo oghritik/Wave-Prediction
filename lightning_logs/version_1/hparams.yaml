@@ -1,0 +1,3 @@
+forecast_horizon: 168
+input_dim: 11
+lr: 1.0e-05

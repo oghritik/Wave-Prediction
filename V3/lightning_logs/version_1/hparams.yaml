@@ -1,0 +1,4 @@
+forecast_horizon: 3
+input_dim: 9
+lr: 1.0e-05
+num_output_channels: 7

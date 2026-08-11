@@ -3,7 +3,7 @@ Research Papers/
 .ipynb_checkpoints/
 wave_experiment/
 models/
-lightning_logs/
+# lightning_logs/
 V2/.conda/
 dAtA_for_V2/
 .vs/
